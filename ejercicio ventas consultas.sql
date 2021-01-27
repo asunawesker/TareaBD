@@ -410,3 +410,18 @@ FROM PRODUCTOS inner join TIPO_PRODUCTO on productos.COD_PROD = tipo_producto.CO
 			   inner join CLIENTES on clientes.COD_CLI = notas.COD_CLI
 			   inner join CLIENTE_PER_NATURAL on CLIENTE_PER_NATURAL.COD_CLI = clientes.COD_CLI
 			   inner join DISTRITOS on distritos.COD_DIST = CLIENTES.COD_DIST_CLI
+
+--Hacer un reporte que muestre la descripción del tipo de producto y cuantos productos existen para este tipo
+Select DESC_DIST, ClientesDist.ClientesXDistrito
+From DISTRITOS inner join (SELECT COD_DIST_CLI, COUNT (*) AS ClientesXDistrito
+              FROM CLIENTES GROUP BY COD_DIST_CLI)  as ClientesDist on DISTRITOS.COD_DIST= ClientesDist.COD_DIST_CLI
+
+--Descripción del distrito y no. de clientes que tengo por cada distrito
+SELECT DESC_TIPO_PROD, re.NOPRODUCTOS
+FROM TIPO_PRODUCTO INNER JOIN (SELECT  COD_TIPO_PROD, COUNT (*) AS NOPRODUCTOS
+FROM PRODUCTOS GROUP BY COD_TIPO_PROD) AS Re on TIPO_PRODUCTO.COD_TIPO_PROD=Re.COD_TIPO_PROD
+
+--Nombre del empleado y número de ventas que ha realizado
+Select NOM_EMP, EN.NoVentas
+From EMPLEADOS inner join (SELECT COD_EMP, COUNT (*) AS NoVentas
+FROM NOTAS GROUP BY COD_EMP)  as EN on EMPLEADOS.COD_EMP= EN.COD_EMP

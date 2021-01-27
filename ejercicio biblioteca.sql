@@ -53,36 +53,37 @@ create table libros
    titulo varchar  (15)not null check(titulo like '"%"'),
    editorial varchar (15)not null,
    numero_paginas tinyint not null,
-   genero varchar(15)not null check (genero in ('drama','suspenso','novela','accion'))
+   genero varchar(15)not null check (genero in ('drama','suspenso','novela','accion')),
+   ejem_disponibles int default 0
 )
 go
 
 insert into libros
-values ('L12345','"La Aduana"','Trillas','100','drama')
+values ('L12345','"La Aduana"','Trillas','100','drama',0)
 
 insert into libros
-values ('L12346','"El Castillo"','Maxwell','120','suspenso')
+values ('L12346','"El Castillo"','Maxwell','120','suspenso',2)
 
 insert into libros
-values ('L12455','"El Serpe"','Trillas','100','accion')
+values ('L12455','"El Serpe"','Trillas','100','accion',4)
 
 insert into libros
-values ('L12311','"La Divina"','Larousse','110','novela')
+values ('L12311','"La Divina"','Larousse','110','novela',5)
 
 insert into libros
-values ('L12598','"El Amor"','Oceano','200','drama')
+values ('L12598','"El Amor"','Oceano','200','drama',0)
 
 insert into libros
-values ('L12567','"La Serpiente"','Uv','130','novela')
+values ('L12567','"La Serpiente"','Uv','130','novela',1)
 
 insert into libros
-values ('L12375','"La Canci�n"','Musik','180','drama')
+values ('L12375','"La Canci�n"','Musik','180','drama',2)
 
 insert into libros
-values ('L11115','"Crep�sculo"','Trillas','255','accion')
+values ('L11115','"Crep�sculo"','Trillas','255','accion',3)
 
 insert into libros
-values ('L12569','"La Familia"','Oceano','100','accion')
+values ('L12569','"La Familia"','Oceano','100','accion',4)
 
 go
 
@@ -301,3 +302,30 @@ FROM libros inner join ejemplares on ejemplares.cod_libro = libros.cod_libro
 			inner join escribe on escribe.cod_libro = libros.cod_libro
 			inner join autores on autores.cod_autor = escribe.cod_autor
 ORDER BY apellido_pt, fecha_prestamo
+
+--Agrupando por número de libros escritos de cada autor
+SELECT nombre_autor as 'Nombre del autor', NoLibros
+FROM 
+    (SELECT cod_autor, count(*) AS NoLibros
+    FROM escribe 
+    GROUP BY cod_autor) as ConteoLibros 
+INNER JOIN autores on autores.cod_autor = ConteoLibros.cod_autor
+
+--Cuantas veces se ha prestado un ejemplar
+SELECT libros.cod_libro, ejemplares.folio,libros.titulo, XX.NoPrestamos
+FROM libros 
+INNER JOIN ejemplares on libros.cod_libro=ejemplares.cod_libro
+INNER JOIN (select folio, count(*) as NoPrestamos from consultas group by folio) as XX 
+	on XX.folio = ejemplares.folio
+
+--Veces en que se ha prestado un libro
+SELECT libros.cod_libro, libros.titulo, t1.NoPrestamos
+FROM libros inner join 
+	(SELECT cod_libro,count(*)as NoPrestamos 
+	FROM ejemplares INNER JOIN consultas on ejemplares.folio=consultas.folio
+	GROUP BY cod_libro) AS t1 ON libros.cod_libro=t1.cod_libro
+
+CREATE TRIGGER TR_INSERTA_CONSULTAON CONSULTASFOR INSERTAs	UPDATE LIBROS SET ejem_disponibles=ejem_disponibles-1	WHERE COD_LIBRO IN 	(SELECT COD_LIBRO FROM inserted INNER JOIN EJEMPLARES ON EJEMPLARES.FOLIO=inserted.folio)
+
+--ESTA CONSULTA DISPARA EL SP
+insert into consultasvalues ('20082712','20083012','ID1222267','F190')
